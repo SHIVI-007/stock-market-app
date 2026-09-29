@@ -1,0 +1,17 @@
+# Caddy configuration for the production stack.
+#
+# Caddy obtains and renews a Let's Encrypt certificate for this hostname
+# automatically, and redirects plain HTTP to HTTPS. The hostname comes from
+# APP_DOMAIN in `.env`.
+#
+# Nothing else is needed for TLS — but DNS for the name must already point at the
+# server, and ports 80 and 443 must be reachable, before the first start.
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# `reverse_proxy` sets X-Forwarded-For, X-Forwarded-Proto and
+	# X-Forwarded-Host, which the app uses to build reset links and to key the
+	# rate limiter.
+	reverse_proxy app:3000
+}

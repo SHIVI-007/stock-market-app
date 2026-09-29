@@ -1,0 +1,95 @@
+# Stock Market Fundamentals
+#
+#   docker compose up -d db          # start PostgreSQL
+#   npm run db:deploy                # apply migrations (or `db:push` while iterating)
+#   npm run db:seed                  # load the course content
+#   npm run dev                      # run the app on the host
+#
+# Or run everything in containers:
+#
+#   docker compose up --build
+#
+# Every `${...:?}` below is deliberate: a missing value fails loudly instead of
+# silently starting with an insecure default.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: stock-market-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set - add it to the .env file next to docker-compose.yml}
+      POSTGRES_DB: stock_market_app
+    ports:
+      # Bound to loopback only: the app reaches the database over the compose
+      # network, so publishing this to the internet would expose the database
+      # for no reason. `npm run db:deploy` from the host still works.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d stock_market_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stock-market-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Built from POSTGRES_PASSWORD so the two can never drift apart.
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/stock_market_app
+      NODE_ENV: production
+
+      # `.env` is excluded from the image by .dockerignore, so secrets have to be
+      # passed in here. Compose reads them from a `.env` file sitting next to
+      # this one.
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set - add it to the .env file next to docker-compose.yml}
+
+      # Administrator allowlist. Comma-separated. Empty is fine.
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+
+      # Must be "true" wherever the site is served over HTTPS. Required rather
+      # than defaulted, so it cannot be forgotten.
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:?AUTH_COOKIE_SECURE must be set to "true" (HTTPS) or "false" (plain HTTP) in the .env file next to docker-compose.yml}
+
+      # Password reset email. "resend" delivers through the Resend API; "console"
+      # just logs the link.
+      AUTH_MAIL_TRANSPORT: ${AUTH_MAIL_TRANSPORT:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      AUTH_MAIL_FROM: ${AUTH_MAIL_FROM:-}
+
+      # Absolute base URL, so reset links point at the real domain no matter what
+      # a proxy forwards. Set this in production.
+      APP_URL: ${APP_URL:-}
+
+      # Abuse protection. "false" disables it; leave it on in production.
+      AUTH_RATE_LIMIT_ENABLED: ${AUTH_RATE_LIMIT_ENABLED:-true}
+    ports:
+      # Loopback only in every environment. Locally that is still
+      # http://localhost:3000; in production Caddy reaches the app over the
+      # compose network instead, so the app is never exposed directly.
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      # Uses the app's own probe, so the container is only healthy once it is
+      # serving and can reach the database.
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  db_data:

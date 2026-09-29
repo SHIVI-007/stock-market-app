@@ -1,0 +1,58 @@
+# Production override. Adds Caddy in front of the app so the site is served over
+# HTTPS with a certificate obtained and renewed automatically.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# The app itself is published on loopback only (from docker-compose.yml), so all
+# traffic arrives through Caddy — which also sets the X-Forwarded-* headers the
+# app uses for reset links and rate limiting.
+#
+# Only APP_DOMAIN has to be new; everything else still comes from `.env`.
+
+services:
+  app:
+    environment:
+      # Derived from the domain, so the two can never disagree.
+      APP_URL: https://${APP_DOMAIN:?APP_DOMAIN must be set - the hostname users will visit, e.g. app.example.com}
+      # Caddy terminates TLS, so the session cookie must be Secure. Setting it
+      # here makes an insecure production deployment impossible.
+      AUTH_COOKIE_SECURE: "true"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: stock-market-caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN must be set - the hostname users will visit, e.g. app.example.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # One-off database jobs. Not started by `up` (it is behind a profile); run it
+  # deliberately, because the Prisma CLI is a dev dependency and so is not in the
+  # slim runtime image.
+  #
+  #   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate
+  #   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate npx prisma db seed
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/stock_market_app
+    command: ["npx", "prisma", "migrate", "deploy"]
+
+volumes:
+  caddy_data:
+  caddy_config:

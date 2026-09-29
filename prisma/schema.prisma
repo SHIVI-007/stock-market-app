@@ -1,0 +1,278 @@
+// Prisma schema for the Stock Market Fundamentals learning app.
+//
+// This powers the *persistence* layer: the course catalogue, a user's lesson
+// progress, quiz attempts, the glossary and achievements. The learning content
+// itself is authored in TypeScript (see `lib/learning/curriculum.ts`) so that
+// the app renders without a database; running `prisma db seed` mirrors that
+// authored content into PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// In Prisma 7 the connection URL is configured in `prisma.config.ts`
+// (for the CLI) and supplied to `PrismaClient` at runtime via a driver adapter.
+datasource db {
+  provider = "postgresql"
+}
+
+/// Learning depth of a lesson. Beginners start at BEGINNER.
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  /// Learners can be promoted to administrators, who see the /admin dashboard.
+  role           Role     @default(LEARNER)
+  /// The learner's theme choice: "light", "dark" or "system".
+  themePreference String @default("system")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastSignedInAt DateTime?
+
+  lessonProgress LessonProgress[]
+  quizAttempts   QuizAttempt[]
+  passwordResetTokens PasswordResetToken[]
+  lessonRatings  LessonRating[]
+  feedback       Feedback[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  description String?
+
+  chapters Chapter[]
+
+  @@map("courses")
+}
+
+model Chapter {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  description String?
+  /// 1-based ordering of the chapter within the course.
+  chapterOrder Int
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons Lesson[]
+  quizzes Quiz[]
+
+  @@unique([courseId, chapterOrder])
+  @@map("chapters")
+}
+
+model Lesson {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  title            String
+  description      String?
+  /// 1-based ordering of the lesson within its chapter.
+  lessonOrder      Int
+  difficulty       Difficulty @default(BEGINNER)
+  estimatedMinutes Int        @default(8)
+  /// Key of the interactive component to render, e.g. "OwnershipSimulator".
+  interactive      String?
+
+  chapterId String
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  progress LessonProgress[]
+  quizzes  Quiz[]
+  ratings  LessonRating[]
+
+  @@unique([chapterId, lessonOrder])
+  @@map("lessons")
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  completed   Boolean  @default(false)
+  score       Float?
+  xpEarned    Int      @default(0)
+  lastAttempt DateTime @updatedAt
+
+  userId   String
+  lessonId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+model Quiz {
+  id    String @id @default(cuid())
+  title String
+
+  lessonId String?
+  lesson   Lesson? @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  questions    Question[]
+  quizAttempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id          String  @id @default(cuid())
+  prompt      String
+  explanation String?
+  /// 1-based ordering of the question within the quiz.
+  questionOrder Int
+
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  answers Answer[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  score     Float
+  total     Int
+  createdAt DateTime @default(now())
+
+  userId String
+  quizId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+model GlossaryTerm {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  term       String
+  definition String
+  formula    String?
+  example    String?
+  related    String[]
+  createdAt  DateTime @default(now())
+
+  @@map("glossary_terms")
+}
+
+model Achievement {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+
+  @@map("achievements")
+}
+
+/// A single-use, time-limited password reset token.
+///
+/// Only the SHA-256 hash of the token is stored, so a database leak cannot be
+/// used to take over accounts.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+/// Access level. Administrators see the /admin dashboard.
+enum Role {
+  LEARNER
+  ADMIN
+}
+
+/// What kind of feedback a learner is leaving.
+enum FeedbackCategory {
+  BUG
+  CONTENT
+  FEATURE
+  OTHER
+}
+
+/// Triage state for a piece of feedback, managed from the admin dashboard.
+enum FeedbackStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+}
+
+/// A learner's 1–5 star rating of a lesson, with an optional comment.
+model LessonRating {
+  id      String  @id @default(cuid())
+  /// 1–5 stars. Validated in application code.
+  stars   Int
+  comment String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lesson_ratings")
+}
+
+/// Feedback about the app itself. Can be submitted without an account.
+model Feedback {
+  id       String           @id @default(cuid())
+  subject  String?
+  message  String
+  category FeedbackCategory @default(OTHER)
+  /// Optional overall rating, 1–5 stars.
+  stars    Int?
+  /// Used when the submission is anonymous.
+  email    String?
+  status   FeedbackStatus   @default(OPEN)
+  /// Internal note, visible only in the admin dashboard.
+  adminNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("feedback")
+}

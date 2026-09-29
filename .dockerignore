@@ -1,0 +1,39 @@
+# Keep the build context small and never bake local files into the image.
+
+# Dependencies and build output are produced inside the image from the lockfile,
+# so the host copies are never needed. Without this, `COPY . .` overwrites the
+# container's own `npm ci` result with the host's `node_modules`.
+node_modules
+.next
+
+# Secrets. `next build` copies `.env` into `.next/standalone`, which the runtime
+# stage then copies into the published image — so this exclusion is what keeps
+# AUTH_SECRET and DATABASE_URL out of it.
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Local caches and logs
+.npm-cache
+npm-debug.log*
+yarn-error.log*
+
+# Test and tooling output
+test-results
+playwright-report
+coverage
+
+# Repository and editor metadata
+.git
+.gitignore
+.vscode
+.idea
+*.tsbuildinfo
+
+# Container and documentation files the image does not need
+Dockerfile
+docker-compose.yml
+README.md
+CLAUDE.md
+AGENTS.md
