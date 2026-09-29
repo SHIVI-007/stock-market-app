@@ -137,10 +137,15 @@ This mirrors the authored curriculum, glossary and achievements into PostgreSQL.
 TypeScript and the UI does not depend on the database (see
 [How progress is stored](#how-progress-is-stored)).
 
-> Run this on a fresh database only. It clears `lesson`, `lesson_progress`,
-> `quiz_attempts` and `course` before re-inserting, and `lesson_ratings` are
-> removed along with the lessons by `onDelete: Cascade` — so re-seeding after
-> learners have progress will erase it.
+The seed is **idempotent and safe to re-run**. Content is matched on `slug` and
+updated in place, so lesson ids stay stable and learner progress, quiz scores and
+ratings are untouched. Re-run it whenever the authored content changes — the
+database mirror has to be kept in step, because `/api/catalogue`, `POST
+/api/progress` and lesson ratings all resolve lessons through it.
+
+The one exception is content you have *deleted* from `lib/learning/*`: those rows
+are removed, and their progress and ratings go with them. The seed lists exactly
+what it removed.
 
 ### 6. Start the dev server
 
@@ -191,6 +196,10 @@ The test suite covers:
   explanations, and unique slugs
 - **Progress store** (`lib/progress/progress-store.test.ts`) — completion, quiz
   scoring, persistence and subscriptions
+- **Content seeding** (`lib/db/seed.test.ts`) — that re-running the seed keeps
+  lesson ids stable and preserves progress, ratings and quiz attempts, does not
+  duplicate content, and reports deleted content. Needs a real database; see the
+  file header. Skipped unless `SEED_TEST_DATABASE_URL` is set.
 - **Rate limiting** (`lib/rate-limit.test.ts`) — window accounting, key isolation,
   window reset, and the disabled path
 - **Components** — the ownership simulator and the quiz flow
@@ -515,7 +524,8 @@ cp .env.production.example .env
 
 # 3. Point DNS for APP_DOMAIN at this server and open ports 80 and 443.
 
-# 4. Create the schema, then load the course content once.
+# 4. Create the schema, then load the course content.
+#    Both are safe to re-run.
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate npx prisma db seed
 
@@ -575,11 +585,10 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools 
 DATABASE_URL="postgresql://postgres:PASSWORD@db-host:5432/stock_market_app" npm run db:deploy
 ```
 
-> **`db:seed` is destructive.** It empties `lesson`, `lesson_progress`,
-> `quiz_attempts` and `course`, and the `lesson_ratings` rows go with them via
-> `onDelete: Cascade`. It is safe on a brand-new database and **loses every
-> learner's progress, scores and ratings on a database that already has users**.
-> Run it once, at first deploy, and not again.
+> **Re-run `db:seed` whenever the authored content changes.** It is idempotent:
+> rows are matched on `slug` and updated in place, so lesson ids stay stable and
+> progress, scores and ratings survive. Only content you have deleted from
+> `lib/learning/*` is removed, and the seed reports exactly what it removed.
 
 Use `npm run db:push` only while iterating locally: it has no history and cannot
 be reviewed.
