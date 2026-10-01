@@ -1,4 +1,4 @@
-import { fx, h, info, kv, ol, ok, p, q, steps, tbl, tool, ul, warn } from "../blocks";
+import { anim, fx, h, info, kv, ol, ok, p, q, steps, tbl, tool, ul, warn } from "../blocks";
 import type { Chapter } from "../types";
 
 export const foundationsChapters: Chapter[] = [
@@ -28,6 +28,10 @@ export const foundationsChapters: Chapter[] = [
           h("Where does your money go?"),
           p(
             "Most people receive money as income (a salary, fees, or business profit) and then decide how to use it. Every rupee follows one of a few broad paths.",
+          ),
+          anim(
+            "MoneyJourney",
+            "Watch one month of salary split into expenses, savings and investments — then see how assets and liabilities give you a net worth.",
           ),
           steps([
             { title: "Income", text: "Money coming in — salary, business profit, interest, rent." },
@@ -113,6 +117,10 @@ export const foundationsChapters: Chapter[] = [
             "When money earns a return, that return can itself earn a return in the following period. Growth builds on growth. Over long periods this effect is dramatic, which is why time matters so much.",
           ),
           fx("Future value = Present value × (1 + rate)^years"),
+          anim(
+            "CompoundingOverTime",
+            "₹1,00,000 at 10% a year — and why the second year earns more than the first.",
+          ),
           p(
             "At 10% a year, ₹1,00,000 becomes roughly ₹1,61,000 in five years and ₹2,59,000 in ten years — assuming the rate is steady, which in real markets it never is.",
           ),
@@ -196,6 +204,10 @@ export const foundationsChapters: Chapter[] = [
             "Equity is ownership. You share in profit and growth — and in losses.",
             "Debt is lending. You are promised interest and repayment, but you do not share in the upside.",
           ]),
+          anim(
+            "OwnershipOrLending",
+            "Sort the categories into the two families — and see why a mutual fund is a wrapper, not a kind of asset.",
+          ),
           tool("InvestmentTypes"),
           info(
             "Notice that each category above can have very different risk inside it. One bond can be far safer than another. Understanding the category is the first step, not the last.",
@@ -263,6 +275,10 @@ export const foundationsChapters: Chapter[] = [
             "That separation matters. If the company fails, its owners (shareholders) can generally lose only what they invested, not their personal assets. This is called limited liability, and it is one reason people are willing to invest in businesses they do not run.",
           ),
           h("From idea to ownership"),
+          anim(
+            "CompanyJourney",
+            "Idea → business → capital → investors → ownership: the journey that ends in shares.",
+          ),
           steps([
             { title: "Idea", text: "A founder sees a problem worth solving." },
             { title: "Business", text: "The idea becomes operations: product, customers, costs." },
@@ -315,6 +331,10 @@ export const foundationsChapters: Chapter[] = [
         blocks: [
           p(
             "Every business is ultimately a simple loop: sell something to customers for more than it costs you to provide it. What makes companies different is the detail inside that loop.",
+          ),
+          anim(
+            "BusinessLoop",
+            "The loop every business runs: customers pay, costs are met, profit is what remains.",
           ),
           ol([
             "Revenue is the total money collected from customers.",
@@ -390,6 +410,10 @@ export const foundationsChapters: Chapter[] = [
           h("When is revenue recorded?"),
           p(
             "Companies use accrual accounting: revenue is recorded when the goods or service have been delivered, not necessarily when the cash arrives. Deliver a ₹10 lakh order to a customer who pays in 90 days, and revenue of ₹10 lakh is recorded today while the cash shows up much later.",
+          ),
+          anim(
+            "WhenRevenueLands",
+            "Revenue is recorded when the goods are delivered — the cash can turn up three months later.",
           ),
           p("That single rule explains a lot of the difference between profit and cash, which we return to later in the course."),
           h("Different businesses earn revenue differently"),
@@ -484,6 +508,10 @@ export const foundationsChapters: Chapter[] = [
           p(
             "A business with mostly variable costs sees profits move roughly in step with sales. A business with high fixed costs sees profits move much more sharply: once the fixed base is covered, each extra sale drops more profit to the bottom line — but a fall in sales hurts just as forcefully.",
           ),
+          anim(
+            "HowCostsBehave",
+            "Why the same 10% fall in sales can cost one business ₹2 lakh of profit and another ₹8 lakh.",
+          ),
           kv([
             {
               label: "High fixed costs",
@@ -547,6 +575,10 @@ export const foundationsChapters: Chapter[] = [
         blocks: [
           p(
             "Profit is what remains of revenue once costs are subtracted — but there is not one profit figure. There are several, each subtracting a different kind of cost. Reading them in order is like peeling an onion.",
+          ),
+          anim(
+            "ProfitLayers",
+            "One revenue figure, five layers — each layer is what the one above it leaves behind.",
           ),
           tbl(
             ["Profit measure", "What it subtracts from revenue", "What it tells you"],
@@ -618,6 +650,10 @@ export const foundationsChapters: Chapter[] = [
         blocks: [
           p(
             "A profitable business still needs cash. It may have to pay suppliers and salaries today while customers pay in ninety days. Or it may want to build a new plant that takes years to repay.",
+          ),
+          anim(
+            "WhyCapital",
+            "Why a profitable business still raises money — and the two very different ways it can.",
           ),
           h("Two ways to raise money"),
           kv([
@@ -692,6 +728,10 @@ export const foundationsChapters: Chapter[] = [
           p(
             "Suppose a company is worth ₹10 crore and it has issued 10,00,000 shares. Each share then represents ₹100 of company value. That is the entire idea behind a share: a company's ownership divided into equal units.",
           ),
+          anim(
+            "OwnershipSlices",
+            "Cut a ₹10 crore company into 10,00,000 shares — then watch a 5% holding keep its proportion while its value doubles.",
+          ),
           fx("Value per share = Company value ÷ Number of shares"),
           p(
             "Own 50,000 of those shares and you own 5% of the company — regardless of what the share price later does. Ownership is about proportion; price is about the value of that proportion.",
@@ -747,6 +787,10 @@ export const foundationsChapters: Chapter[] = [
           ),
           p(
             "Companies issue new shares to raise money — for expansion, to repay debt, or to fund an acquisition. That is not automatically bad. The test is whether the money raised creates more value than the ownership it costs.",
+          ),
+          anim(
+            "DilutionSlices",
+            "Watch a 10% holding fall to 6.67% as new shares are issued — and why that is not the same as losing money.",
           ),
           tbl(
             ["Before", "After issuing new shares"],

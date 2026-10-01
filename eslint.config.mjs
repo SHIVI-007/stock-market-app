@@ -9,6 +9,11 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // The end-to-end suite runs its own dev server with NEXT_DIST_DIR=.next-e2e
+    // (see `playwright.config.ts`). Without this, running the suite leaves
+    // generated files behind and the next `npm run lint` reports thousands of
+    // problems in code nobody wrote.
+    ".next-e2e/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

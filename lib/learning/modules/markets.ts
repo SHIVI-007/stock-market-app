@@ -1,4 +1,4 @@
-import { fx, h, info, p, q, steps, tbl, tool, ul, warn } from "../blocks";
+import { anim, fx, h, info, p, q, steps, tbl, tool, ul, warn } from "../blocks";
 import type { Chapter } from "../types";
 
 export const marketsChapters: Chapter[] = [
@@ -37,6 +37,10 @@ export const marketsChapters: Chapter[] = [
           ]),
           info(
             "'Liquidity' describes how easily something can be bought or sold without moving its price much. A busy market is liquid; a rare collector's item is not.",
+          ),
+          anim(
+            "WhyMarketsExist",
+            "One owner, no buyer — then see what changes once every buyer and seller is gathered in one place.",
           ),
           p(
             "Imagine a fictional company, Nimbus Technologies Ltd. Thousands of investors may want to own a small piece of it. In a market, a seller who wants cash can sell to one of those investors within seconds. Without a market, the same seller might wait months and accept a poor price.",
@@ -104,6 +108,10 @@ export const marketsChapters: Chapter[] = [
             "A broker is a registered intermediary that lets you place orders on an exchange. You tell your broker what you want to buy or sell; the broker sends that order to the market and reports back what happened.",
           ),
           h("The journey of an order"),
+          anim(
+            "OrderJourney",
+            "Follow one order from you, through your broker, to the exchange that matches it with an opposing order.",
+          ),
           steps([
             {
               title: "Place the order",
@@ -736,6 +744,10 @@ export const marketsChapters: Chapter[] = [
             "The money raised in an IPO goes to the company (for new shares it issues) and sometimes to existing owners who are selling part of their stake. This is the primary market, where shares are created and sold by the company itself.",
           ),
           h("How an IPO usually works"),
+          anim(
+            "IpoJourney",
+            "Five stages, from deciding to go public to the shares trading on an exchange — and the money that reaches the company along the way.",
+          ),
           steps([
             {
               title: "Decide to go public",
@@ -822,6 +834,10 @@ export const marketsChapters: Chapter[] = [
         blocks: [
           p(
             "The market has two layers. In the primary market, a company issues new shares and receives the money. In the secondary market, investors trade those shares among themselves, and the company is not involved.",
+          ),
+          anim(
+            "PrimaryVsSecondary",
+            "The same share, two markets — and only one of them sends any money to the company.",
           ),
           tbl(
             ["", "Primary market", "Secondary market"],
@@ -991,6 +1007,10 @@ export const marketsChapters: Chapter[] = [
             "Supply and demand explains how prices change, but not why buyers and sellers change their minds. Several forces shift how people feel about a company and its future.",
           ),
           h("Five forces to know"),
+          anim(
+            "WhatMovesPrices",
+            "Expectations, earnings, news, interest rates and the economy — and the one door they all come through.",
+          ),
           p(
             "Expectations — Prices reflect what investors expect a company to earn in the future, not just what it earned last year. If those expectations change, prices move.",
           ),

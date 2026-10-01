@@ -57,6 +57,9 @@ export default defineConfig({
       // would trip across tests. The limiter has its own unit tests; the
       // end-to-end suite is not the place to exercise it.
       AUTH_RATE_LIMIT_ENABLED: "false",
+      // Its own build directory, so this server can run alongside the one you
+      // develop on — Next permits only one dev server per project directory.
+      NEXT_DIST_DIR: ".next-e2e",
     },
   },
 });

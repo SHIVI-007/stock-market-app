@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { Callout } from "@/components/learning/concept-card";
+import { animationRegistry } from "@/components/animations/registry";
 import { interactiveRegistry } from "@/components/interactive/registry";
 import {
   Table,
@@ -137,6 +138,22 @@ function Block({ block }: { block: LessonBlock }) {
           ))}
         </dl>
       );
+
+    case "animation": {
+      const Animation = animationRegistry[block.key];
+      if (!Animation) return null;
+
+      return (
+        <figure className="space-y-2">
+          <Animation />
+          {block.caption ? (
+            <figcaption className="text-center text-xs text-muted-foreground">
+              {block.caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      );
+    }
 
     case "interactive": {
       const Component = interactiveRegistry[block.key];

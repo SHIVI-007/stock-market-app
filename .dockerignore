@@ -5,6 +5,7 @@
 # container's own `npm ci` result with the host's `node_modules`.
 node_modules
 .next
+.next-e2e
 
 # Secrets. `next build` copies `.env` into `.next/standalone`, which the runtime
 # stage then copies into the published image — so this exclusion is what keeps

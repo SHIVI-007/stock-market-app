@@ -49,6 +49,33 @@ export type InteractiveKey =
   | "RedFlagsExplorer"
   | "CaseStudySimulator";
 
+/**
+ * Identifiers for the animated concept explainers a lesson can embed.
+ *
+ * These are the short, animated walk-throughs that introduce a concept before
+ * the learner manipulates it — deliberately separate from `InteractiveKey`,
+ * which is for tools the learner drives with their own numbers.
+ *
+ * Resolved to components by `components/animations/registry.tsx`.
+ */
+export type ConceptAnimationKey =
+  | "MoneyJourney"
+  | "CompoundingOverTime"
+  | "OwnershipOrLending"
+  | "CompanyJourney"
+  | "BusinessLoop"
+  | "WhenRevenueLands"
+  | "HowCostsBehave"
+  | "ProfitLayers"
+  | "WhyCapital"
+  | "OwnershipSlices"
+  | "DilutionSlices"
+  | "WhyMarketsExist"
+  | "OrderJourney"
+  | "IpoJourney"
+  | "PrimaryVsSecondary"
+  | "WhatMovesPrices";
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
@@ -85,6 +112,11 @@ export type LessonBlock =
       type: "interactive";
       key: InteractiveKey;
       title?: string;
+      caption?: string;
+    }
+  | {
+      type: "animation";
+      key: ConceptAnimationKey;
       caption?: string;
     }
   | { type: "kv"; items: { label: string; value: string }[] };

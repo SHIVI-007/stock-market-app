@@ -541,6 +541,51 @@ Do this before sharing the URL, because sign-up does not verify addresses.
 On Podman, prefix the compose commands with
 `DOCKER_HOST=unix:///run/user/1000/podman/podman.sock podman`.
 
+### Updating an existing deployment
+
+The server runs from a git checkout, so an update is a pull and a rebuild of the
+`app` service:
+
+```bash
+cd ~/stock-market-app
+git pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build app
+```
+
+Naming the `app` service keeps the database and Caddy out of it. Expect a gap of a
+minute or two while the image rebuilds — but only the app container is replaced,
+so the `db_data` volume and every account, progress record, rating and quiz
+attempt survive untouched.
+
+**Migrations and seeding are only needed when their own inputs change.** Most
+updates need neither:
+
+| What changed | What to run |
+| --- | --- |
+| `prisma/schema.prisma` | the `migrate` service |
+| Lesson titles, slugs, ordering, difficulty or `interactive`; quizzes; glossary; achievements | `migrate`, then `db:seed` |
+| Lesson body text, `anim()` blocks, anything under `components/` or `lib/` | nothing — the rebuild is the whole job |
+
+That last row is the common case: `Lesson` stores metadata only, never the lesson
+body, and the lesson pages are prerendered at build time. So text and component
+changes ship with the image and never touch the database.
+
+```bash
+# Only when prisma/ changed:
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate
+
+# Only when content metadata changed. Idempotent — it matches on slug and never
+# deletes learner data:
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile tools run --rm migrate npx prisma db seed
+```
+
+Confirm the new build is answering, and if anything looks wrong, roll back with
+`git checkout <previous-commit>` followed by the same rebuild:
+
+```bash
+curl -sS https://APP_DOMAIN/api/health
+```
+
 ### Environment
 
 Compose refuses to start until the values marked **required** are set, so a
@@ -669,6 +714,7 @@ app/
 
 components/
 ├── admin/                       # user table + feedback inbox
+├── animations/                  # concept explainers + player + registry
 ├── auth/                        # session provider, auth + profile forms
 ├── calculators/                 # formula engine + ratio calculators
 ├── diagrams/                    # exchange / market structure / accounts

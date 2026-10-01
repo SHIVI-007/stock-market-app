@@ -4,6 +4,14 @@ const nextConfig = {
   // Dockerfile runs in its slim runtime stage.
   output: "standalone",
 
+  // Where the build and dev artefacts live.
+  //
+  // Overridable so the end-to-end suite can run its own server without fighting
+  // the one you develop against: Next allows only a single dev server per
+  // project directory, and that lock lives inside this directory. Giving the
+  // tests their own keeps `npm run test:e2e` working while `npm run dev` is up.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+
   // Allows local/LAN hosts to reach dev-only resources (HMR, etc.) while
   // developing. Harmless for production builds.
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.29.99"],

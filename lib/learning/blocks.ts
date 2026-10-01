@@ -1,4 +1,9 @@
-import type { InteractiveKey, LessonBlock, QuizQuestion } from "./types";
+import type {
+  ConceptAnimationKey,
+  InteractiveKey,
+  LessonBlock,
+  QuizQuestion,
+} from "./types";
 
 /**
  * Tiny builders that keep lesson content readable.
@@ -52,6 +57,12 @@ export const fx = (expression: string, note?: string): LessonBlock => ({
 
 export const tool = (key: InteractiveKey, caption?: string): LessonBlock => ({
   type: "interactive",
+  key,
+  caption,
+});
+
+export const anim = (key: ConceptAnimationKey, caption?: string): LessonBlock => ({
+  type: "animation",
   key,
   caption,
 });
